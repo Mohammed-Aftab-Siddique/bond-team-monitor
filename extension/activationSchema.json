@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "title": "Bond Team Monitor Configuration",
+  "description": "Configuration for the Bond Team Monitor Dynatrace Extension.",
+  "type": "object",
+  "properties": {
+    "pollingInterval": {
+      "type": "integer",
+      "title": "Polling Interval (seconds)",
+      "description": "Interval between metric collections.",
+      "default": 60,
+      "minimum": 30,
+      "maximum": 3600
+    },
+    "enableLinuxCollector": {
+      "type": "boolean",
+      "title": "Enable Linux Collector",
+      "default": true
+    },
+    "enableWindowsCollector": {
+      "type": "boolean",
+      "title": "Enable Windows Collector",
+      "default": true
+    }
+  },
+  "required": [
+    "pollingInterval",
+    "enableLinuxCollector",
+    "enableWindowsCollector"
+  ]
+}
