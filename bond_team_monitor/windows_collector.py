@@ -8,6 +8,8 @@ import json
 import logging
 import subprocess
 
+from .topology import NetworkMember
+
 logger = logging.getLogger(__name__)
 
 
@@ -16,12 +18,14 @@ $team = Get-NetLbfoTeam
 $members = Get-NetLbfoTeamMember
 $ips = Get-NetIPAddress
 $adapters = Get-NetAdapter
+$stats = Get-NetAdapterStatistics
 
 @{
     Team = $team
     Members = $members
     IPs = $ips
     Adapters = $adapters
+    Stats = $stats
 } | ConvertTo-Json -Depth 10 -Compress
 """
 
@@ -56,7 +60,7 @@ def _as_list(value):
     return [value]
 
 
-def collect() -> list[dict]:
+def collect() -> list[NetworkMember]:
     """Collect Windows NIC Team information."""
 
     try:
@@ -69,10 +73,16 @@ def collect() -> list[dict]:
     members = _as_list(data.get("Members"))
     adapters = _as_list(data.get("Adapters"))
     ips = _as_list(data.get("IPs"))
+    stats = _as_list(data.get("Stats"))
 
     adapter_lookup = {
         adapter["Name"]: adapter
         for adapter in adapters
+    }
+
+    stats_lookup = {
+        stat["Name"]: stat
+        for stat in stats
     }
 
     collected = []
@@ -84,9 +94,10 @@ def collect() -> list[dict]:
         team_ip = ""
 
         for ip in ips:
+            logger.info("IP object: %s", ip)
             if (
                 ip.get("InterfaceAlias") == team_name
-                and ip.get("AddressFamily") == "IPv4"
+                and ip.get("AddressFamily") == 2
             ):
                 team_ip = ip["IPAddress"]
                 break
@@ -97,6 +108,7 @@ def collect() -> list[dict]:
                 continue
 
             adapter = adapter_lookup.get(member["InterfaceAlias"], {})
+            stat = stats_lookup.get(member["InterfaceAlias"], {})
 
             speed = 0
 
@@ -112,17 +124,29 @@ def collect() -> list[dict]:
             except Exception:
                 pass
 
+
             collected.append(
-                {
-                    "group": team_name,
-                    "interface": member["InterfaceAlias"],
-                    "status": 1 if member["OperationalStatus"] == "Active" else 0,
-                    "speed": speed,
-                    "ip_address": team_ip,
-                    "mac_address": adapter.get("MacAddress", ""),
-                    "duplex": "full",
-                    "operating_system": "windows",
-                }
+                NetworkMember(
+                    group_name=team_name,
+                    interface_name=member["InterfaceAlias"],
+                    ip_address=team_ip,
+
+                    status=member.get("OperationalStatus") == 0,
+                    active=member.get("OperationalStatus") == 0,
+
+                    speed_mbps=speed,
+                    duplex="full",
+
+                    mac_address=adapter.get("MacAddress", ""),
+
+                    rx_bytes=int(stat.get("ReceivedBytes", 0)),
+                    tx_bytes=int(stat.get("SentBytes", 0)),
+
+                    rx_errors=int(stat.get("ReceivedPacketErrors", 0)),
+                    tx_errors=int(stat.get("OutboundPacketErrors", 0)),
+
+                    operating_system="windows",
+                )
             )
 
     logger.info("Collected %d Windows team members.", len(collected))
