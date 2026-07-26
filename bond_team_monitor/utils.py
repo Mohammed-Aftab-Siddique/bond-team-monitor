@@ -7,6 +7,7 @@ used by both the Linux and Windows collectors.
 
 from __future__ import annotations
 
+import json
 import logging
 import subprocess
 from pathlib import Path
@@ -118,3 +119,27 @@ def read_int_file(path: str, default: int = 0) -> int:
         )
 
         return default
+
+def run_powershell(command: str) -> list | dict | None:
+    """
+    Execute a PowerShell command that returns JSON.
+    """
+    output = run_command(
+        [
+            "powershell",
+            "-NoProfile",
+            "-ExecutionPolicy",
+            "Bypass",
+            "-Command",
+            command,
+        ]
+    )
+
+    if not output:
+        return None
+
+    try:
+        return json.loads(output)
+    except json.JSONDecodeError:
+        logger.exception("Failed to parse PowerShell JSON.")
+        return None

@@ -4,8 +4,8 @@ Entry point for the Bond Team Monitor Dynatrace Extension.
 
 from __future__ import annotations
 
-import platform
 import logging
+import platform
 
 from dynatrace_extension import Extension, Status, StatusValue
 
@@ -31,18 +31,19 @@ class BondTeamMonitorExtension(Extension):
         """
         Collect and report metrics.
         """
+        config=self.activation_config
 
         logger.info("Starting collection...")
 
         members = []
 
-        system = platform.system()
+        system = platform.system().lower()
 
-        if system == "Linux":
+        if system == "linux" and config.get("enableLinuxCollector", True):
             logger.info("Running Linux collector.")
             members.extend(linux_collector.collect())
 
-        elif system == "Windows":
+        elif system == "windows" and config.get("enableWindowsCollector", True):
             logger.info("Running Windows collector.")
             members.extend(windows_collector.collect())
 

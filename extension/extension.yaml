@@ -1,6 +1,7 @@
 name: custom:bond-team-monitor
 version: 0.1.0
-minDynatraceVersion: "1.286"
+
+minDynatraceVersion: "1.285"
 
 author:
   name: "Mohammed Aftab Siddique"
@@ -10,7 +11,10 @@ python:
     module: bond_team_monitor
     version:
       min: "3.10"
+      max: "3.10"
 
   activation:
+    remote:
+      path: activationSchema.json
     local:
       path: activationSchema.json
