@@ -35,4 +35,8 @@ class NetworkMember:
     rx_errors: int
     tx_errors: int
 
+    link_failure_count: int
+    bond_mode: str
+    aggregator_id: str
+
     operating_system: str

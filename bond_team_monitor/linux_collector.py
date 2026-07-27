@@ -94,10 +94,12 @@ def _parse_bond_file(bond_file: Path) -> list[NetworkMember]:
     bond_name = bond_file.name
 
     active_slave = ""
+    bond_mode = "unknown"
+    aggregator_id = ""
 
     members: list[NetworkMember] = []
 
-    current: dict[str, str] | None = None
+    current: dict[str, str | int] | None = None
 
     for raw_line in contents.splitlines():
         line = raw_line.strip()
@@ -105,12 +107,20 @@ def _parse_bond_file(bond_file: Path) -> list[NetworkMember]:
         if line.startswith("Currently Active Slave:"):
             active_slave = line.split(":", 1)[1].strip()
 
+        if line.startswith("Bonding Mode:"):
+            bond_mode = line.split(":", 1)[1].strip()
+
+        if line.startswith("Aggregator ID:"):
+            aggregator_id = line.split(":", 1)[1].strip()
+
         elif line.startswith("Slave Interface:"):
             if current:
                 members.append(
                     _build_member(
                         bond_name,
                         active_slave,
+                        bond_mode,
+                        aggregator_id,
                         current,
                     )
                 )
@@ -131,12 +141,16 @@ def _parse_bond_file(bond_file: Path) -> list[NetworkMember]:
 
         elif line.startswith("Permanent HW addr:"):
             current["mac"] = line.split(":", 1)[1].strip()
+        elif line.startswith("Link Failure Count:"):
+            current["link_failure_count"] = int(line.split(":", 1)[1].strip())
 
     if current:
         members.append(
             _build_member(
                 bond_name,
                 active_slave,
+                bond_mode,
+                aggregator_id,
                 current,
             )
         )
@@ -153,6 +167,8 @@ def _parse_bond_file(bond_file: Path) -> list[NetworkMember]:
 def _build_member(
     bond_name: str,
     active_slave: str,
+    bond_mode: str,
+    aggregator_id: str,
     data: dict[str, str],
 ) -> NetworkMember:
     """
@@ -180,6 +196,9 @@ def _build_member(
         tx_bytes=0,
         rx_errors=0,
         tx_errors=0,
+        link_failure_count=data.get("link_failure_count", 0),
+        bond_mode=bond_mode,
+        aggregator_id=aggregator_id,
         operating_system="linux",
     )
 

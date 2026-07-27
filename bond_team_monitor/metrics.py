@@ -27,6 +27,8 @@ def report(extension, members: list[NetworkMember]) -> None:
             "mac_address": member.mac_address,
             "operating_system": member.operating_system,
             "duplex": member.duplex,
+            "bond_mode": member.bond_mode,
+            "aggregator_id": member.aggregator_id
         }
 
         extension.report_metric(
@@ -68,5 +70,11 @@ def report(extension, members: list[NetworkMember]) -> None:
         extension.report_metric(
             "bond_team.tx.errors",
             member.tx_errors,
+            dimensions,
+        )
+
+        extension.report_metric(
+            "bond_team.link_failures",
+            member.link_failure_count,
             dimensions,
         )

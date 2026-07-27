@@ -29,6 +29,19 @@ $stats = Get-NetAdapterStatistics
 } | ConvertTo-Json -Depth 10 -Compress
 """
 
+TEAMING_MODES = {
+    0: "Static",
+    1: "SwitchIndependent",
+    2: "LACP",
+}
+
+LOAD_BALANCING = {
+    0: "TransportPorts",
+    1: "IPAddresses",
+    2: "MacAddresses",
+    3: "HyperVPort",
+    4: "Dynamic",
+}
 
 def _run_powershell() -> dict:
     """Execute PowerShell and return parsed JSON."""
@@ -144,6 +157,16 @@ def collect() -> list[NetworkMember]:
 
                     rx_errors=int(stat.get("ReceivedPacketErrors", 0)),
                     tx_errors=int(stat.get("OutboundPacketErrors", 0)),
+
+                    link_failure_count=int(member.get("NumberOfFailures") or 0),
+                    bond_mode=TEAMING_MODES.get(
+                        team.get("TeamingMode"),
+                        str(team.get("TeamingMode", "")),
+                    ),
+                    aggregator_id=LOAD_BALANCING.get(
+                        team.get("LoadBalancingAlgorithm"),
+                        str(team.get("LoadBalancingAlgorithm", "")),
+                    ),
 
                     operating_system="windows",
                 )
