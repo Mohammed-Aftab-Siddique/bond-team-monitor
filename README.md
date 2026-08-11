@@ -84,14 +84,6 @@ bond-team-monitor/
 
 ---
 
-# Team / Bond Monitor
-
-Dynatrace extension for monitoring **Team/Bond network interfaces and their member interfaces**.
-
-This guide explains how to build, install, and configure the Team / Bond Monitor extension in a Dynatrace environment.
-
----
-
 ## Installation Overview
 
 The installation consists of the following steps:
