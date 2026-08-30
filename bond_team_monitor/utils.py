@@ -120,6 +120,7 @@ def read_int_file(path: str, default: int = 0) -> int:
 
         return default
 
+
 def run_powershell(command: str) -> list | dict | None:
     """
     Execute a PowerShell command that returns JSON.

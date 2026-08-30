@@ -31,7 +31,7 @@ class BondTeamMonitorExtension(Extension):
         """
         Collect and report metrics.
         """
-        config=self.activation_config
+        config = self.activation_config
 
         logger.info("Starting collection...")
 

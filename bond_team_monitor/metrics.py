@@ -28,7 +28,7 @@ def report(extension, members: list[NetworkMember]) -> None:
             "operating_system": member.operating_system,
             "duplex": member.duplex,
             "bond_mode": member.bond_mode,
-            "aggregator_id": member.aggregator_id
+            "aggregator_id": member.aggregator_id,
         }
 
         extension.report_metric(

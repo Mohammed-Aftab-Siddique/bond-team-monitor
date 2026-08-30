@@ -43,6 +43,7 @@ LOAD_BALANCING = {
     4: "Dynamic",
 }
 
+
 def _run_powershell() -> dict:
     """Execute PowerShell and return parsed JSON."""
 
@@ -88,35 +89,24 @@ def collect() -> list[NetworkMember]:
     ips = _as_list(data.get("IPs"))
     stats = _as_list(data.get("Stats"))
 
-    adapter_lookup = {
-        adapter["Name"]: adapter
-        for adapter in adapters
-    }
+    adapter_lookup = {adapter["Name"]: adapter for adapter in adapters}
 
-    stats_lookup = {
-        stat["Name"]: stat
-        for stat in stats
-    }
+    stats_lookup = {stat["Name"]: stat for stat in stats}
 
     collected = []
 
     for team in teams:
-
         team_name = team["Name"]
 
         team_ip = ""
 
         for ip in ips:
             logger.info("IP object: %s", ip)
-            if (
-                ip.get("InterfaceAlias") == team_name
-                and ip.get("AddressFamily") == 2
-            ):
+            if ip.get("InterfaceAlias") == team_name and ip.get("AddressFamily") == 2:
                 team_ip = ip["IPAddress"]
                 break
 
         for member in members:
-
             if member["Team"] != team_name:
                 continue
 
@@ -137,27 +127,20 @@ def collect() -> list[NetworkMember]:
             except Exception:
                 pass
 
-
             collected.append(
                 NetworkMember(
                     group_name=team_name,
                     interface_name=member["InterfaceAlias"],
                     ip_address=team_ip,
-
                     status=member.get("OperationalStatus") == 0,
                     active=member.get("OperationalStatus") == 0,
-
                     speed_mbps=speed,
                     duplex="full",
-
                     mac_address=adapter.get("MacAddress", ""),
-
                     rx_bytes=int(stat.get("ReceivedBytes", 0)),
                     tx_bytes=int(stat.get("SentBytes", 0)),
-
                     rx_errors=int(stat.get("ReceivedPacketErrors", 0)),
                     tx_errors=int(stat.get("OutboundPacketErrors", 0)),
-
                     link_failure_count=int(member.get("NumberOfFailures") or 0),
                     bond_mode=TEAMING_MODES.get(
                         team.get("TeamingMode"),
@@ -167,7 +150,6 @@ def collect() -> list[NetworkMember]:
                         team.get("LoadBalancingAlgorithm"),
                         str(team.get("LoadBalancingAlgorithm", "")),
                     ),
-
                     operating_system="windows",
                 )
             )

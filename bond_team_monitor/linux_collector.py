@@ -37,7 +37,7 @@ def collect() -> list[NetworkMember]:
     # Discover and parse all bond interfaces.
     for bond_file in _discover_bonds():
         members.extend(_parse_bond_file(bond_file))
-        
+
     for team_name in _discover_teams():
         members.extend(_parse_team(team_name))
 
@@ -91,11 +91,7 @@ def _discover_teams() -> list[str]:
         logger.info("No teamd directory found.")
         return []
 
-    teams = [
-        path.stem
-        for path in TEAMD_DIRECTORY.glob("*.pid")
-        if path.is_file()
-    ]
+    teams = [path.stem for path in TEAMD_DIRECTORY.glob("*.pid") if path.is_file()]
 
     logger.info("Discovered %d team(s).", len(teams))
 
